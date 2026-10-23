@@ -7,10 +7,14 @@ import { useJerusalem } from '@/state/jerusalem-store';
 const SIZE = 250;
 const RADIUS = SIZE / 2;
 
+// Needle palette sampled from the dial artwork: lit/shaded faces of a gold arm and a steel tail.
+const GOLD = ['#f6d98a', '#b48a32'] as const;
+const STEEL = ['#b9b6ab', '#625f57'] as const;
+
 function useSmoothRotation(deg: number) {
   const value = useSharedValue(deg);
   useEffect(() => {
-    // Take the shortest path so the dial never spins the long way around.
+    // Take the shortest path so the needle never spins the long way around.
     const current = value.value % 360;
     let target = deg;
     const diff = ((target - current + 540) % 360) - 180;
@@ -20,18 +24,48 @@ function useSmoothRotation(deg: number) {
   return value;
 }
 
+type HalfTriProps = { dir: 'up' | 'down'; side: 'left' | 'right'; w: number; h: number; color: string };
+
+/** One half of a thin isosceles triangle anchored at the dial center, built from borders. */
+function HalfTri({ dir, side, w, h, color }: HalfTriProps) {
+  const isRight = side === 'right';
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: isRight ? RADIUS : RADIUS - w,
+        top: dir === 'up' ? RADIUS - h : RADIUS,
+        width: 0,
+        height: 0,
+        borderLeftWidth: isRight ? 0 : w,
+        borderRightWidth: isRight ? w : 0,
+        borderLeftColor: 'transparent',
+        borderRightColor: 'transparent',
+        ...(dir === 'up'
+          ? { borderBottomWidth: h, borderBottomColor: color }
+          : { borderTopWidth: h, borderTopColor: color }),
+      }}
+    />
+  );
+}
+
+/**
+ * Jerusalem dial artwork held still, with a gold pointer arm and steel tail. The arm swings to
+ * point at Jerusalem relative to where the device is facing; straight up (under the marker)
+ * means the device is facing Jerusalem.
+ */
 export function CompassDial() {
   const { smoothedHeading, bearingDeg, theme, isAligned } = useJerusalem();
 
-  const dialRotation = useSmoothRotation(-smoothedHeading);
-  const jerusalemRotation = useSmoothRotation(bearingDeg);
+  const needleRotation = useSmoothRotation(bearingDeg - smoothedHeading);
+  const needleStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${needleRotation.value}deg` }],
+  }));
 
-  const dialStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${dialRotation.value}deg` }],
-  }));
-  const markerStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${jerusalemRotation.value}deg` }],
-  }));
+  const w = SIZE * 0.027;
+  const armH = SIZE * 0.41;
+  const tailH = SIZE * 0.37;
+  const hub = SIZE * 0.075;
 
   return (
     <View style={styles.container}>
@@ -40,18 +74,29 @@ export function CompassDial() {
           styles.glow,
           isAligned ? { shadowColor: theme.gold, shadowOpacity: 0.9, shadowRadius: 34, elevation: 12 } : null,
         ]}>
-        <Animated.View style={[styles.dial, { borderColor: theme.brassring }, dialStyle]}>
+        <View style={styles.dial}>
           <Image
             source={require('@/assets/images/app/compass-dial-bg.jpg')}
             style={styles.dialImage}
             resizeMode="cover"
           />
-          <Animated.View style={[styles.jerusalemMarkerWrap, markerStyle]}>
-            <View style={[styles.jerusalemMarker, { backgroundColor: theme.gold, shadowColor: theme.gold }]} />
+          <Animated.View style={[styles.fill, needleStyle]}>
+            <View style={styles.needleShadow}>
+              <HalfTri dir="down" side="left" w={w} h={tailH} color={STEEL[0]} />
+              <HalfTri dir="down" side="right" w={w} h={tailH} color={STEEL[1]} />
+              <HalfTri dir="up" side="left" w={w} h={armH} color={GOLD[0]} />
+              <HalfTri dir="up" side="right" w={w} h={armH} color={GOLD[1]} />
+            </View>
           </Animated.View>
-        </Animated.View>
-        <View style={[styles.needleStem, { backgroundColor: isAligned ? theme.gold : theme.needle, shadowColor: theme.glow }]} />
-        <View style={[styles.needleHub, { backgroundColor: isAligned ? theme.gold : theme.needle }]} />
+          <View
+            style={[
+              styles.hub,
+              { left: RADIUS - hub / 2, top: RADIUS - hub / 2, width: hub, height: hub, borderRadius: hub / 2 },
+            ]}
+          />
+        </View>
+        {/* fixed marker at the top; the gold arm under it means you face Jerusalem */}
+        <View style={[styles.topMarker, { borderTopColor: isAligned ? theme.gold : GOLD[0] }]} />
       </View>
     </View>
   );
@@ -60,30 +105,30 @@ export function CompassDial() {
 const styles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
   glow: { width: SIZE, height: SIZE, borderRadius: RADIUS, alignItems: 'center', justifyContent: 'center' },
-  dial: {
-    width: SIZE,
-    height: SIZE,
-    borderRadius: RADIUS,
-    borderWidth: 3,
-    overflow: 'hidden',
-    position: 'absolute',
-  },
+  dial: { width: SIZE, height: SIZE, borderRadius: RADIUS, overflow: 'hidden', position: 'absolute' },
   dialImage: { width: SIZE, height: SIZE, position: 'absolute', top: 0, left: 0 },
-  jerusalemMarkerWrap: { position: 'absolute', inset: 0 } as object,
-  jerusalemMarker: {
+  fill: { position: 'absolute', top: 0, left: 0, width: SIZE, height: SIZE },
+  needleShadow: {
+    position: 'absolute', top: 0, left: 0, width: SIZE, height: SIZE,
+    filter: 'drop-shadow(2px 4px 3px rgba(0,0,0,0.5))',
+  } as object,
+  hub: {
     position: 'absolute',
-    top: 20,
-    left: RADIUS - 7,
-    width: 14,
-    height: 14,
-    borderRadius: 3,
-    transform: [{ rotate: '45deg' }],
-    shadowOpacity: 0.9,
-    shadowRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#8c6a26',
+    backgroundColor: '#d9b45f',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.6)',
+  } as object,
+  topMarker: {
+    position: 'absolute',
+    top: 3,
+    left: RADIUS - 6,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderTopWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
   },
-  needleStem: {
-    position: 'absolute', top: 6, left: RADIUS - 1.5, width: 3, height: 20, borderRadius: 2,
-    shadowOpacity: 0.9, shadowRadius: 8,
-  },
-  needleHub: { position: 'absolute', top: RADIUS - 5, left: RADIUS - 5, width: 10, height: 10, borderRadius: 5 },
 });
