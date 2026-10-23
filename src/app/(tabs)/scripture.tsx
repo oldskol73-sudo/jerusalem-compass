@@ -67,11 +67,16 @@ export default function ScriptureScreen() {
     setSearched({ hits, total, term: query.trim() });
   };
 
+  // Plain text tabs: the selected one is underlined, with no filled bubbles.
   const tabBtn = (active: boolean) => [
     styles.tabBtn,
-    { backgroundColor: active ? theme.accent : theme.card, borderColor: theme.border },
+    { borderBottomColor: active ? theme.accent : theme.border },
   ];
-  const tabText = (active: boolean) => ({ color: active ? theme.onaccent : theme.text, fontSize: 11, fontWeight: '600' as const });
+  const tabText = (active: boolean) => ({
+    color: active ? theme.text : theme.muted,
+    fontFamily: FONTS.serifSemiBold,
+    fontSize: 17,
+  });
 
   const hasSelection = s.scrVerse != null;
   const selectionRef = bible && hasSelection ? verseRef(bible, { b: s.scrBook, c: s.scrChapter, v: s.scrVerse! }) : '';
@@ -79,11 +84,6 @@ export default function ScriptureScreen() {
 
   const header = (
     <>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>Scripture</Text>
-        <Text style={[styles.kjv, { color: theme.muted }]}>King James Version</Text>
-      </View>
-
       <View style={styles.tabRow}>
         <Pressable style={tabBtn(tab === 'read')} onPress={() => setTab('read')}><Text style={tabText(tab === 'read')}>Read</Text></Pressable>
         <Pressable style={tabBtn(tab === 'search')} onPress={() => setTab('search')}><Text style={tabText(tab === 'search')}>Search</Text></Pressable>
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
   kjv: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
   tabRow: { flexDirection: 'row', gap: 8 },
-  tabBtn: { flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  tabBtn: { flex: 1, borderBottomWidth: 2, paddingVertical: 8, alignItems: 'center' },
   sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
   readRoot: { flex: 1 },
   readTop: { paddingHorizontal: 20, gap: 10 },
