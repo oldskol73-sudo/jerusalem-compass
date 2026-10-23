@@ -53,8 +53,11 @@ export function PassageSheet({ onClose }: { onClose: () => void }) {
     );
   }
 
+  // The 14 Apocrypha books are stored after Revelation so saved verse positions keep working.
+  const CANON_COUNT = 66;
   const ot = bible.slice(0, 39);
-  const nt = bible.slice(39);
+  const nt = bible.slice(39, CANON_COUNT);
+  const apocrypha = bible.slice(CANON_COUNT);
 
   return (
     <View style={{ gap: 10 }}>
@@ -75,6 +78,18 @@ export function PassageSheet({ onClose }: { onClose: () => void }) {
           </Pressable>
         ))}
       </View>
+      {apocrypha.length > 0 && (
+        <>
+          <Text style={[styles.sectionLabel, { color: theme.muted, marginTop: 6 }]}>Apocrypha</Text>
+          <View style={styles.bookGrid}>
+            {apocrypha.map((b, i) => (
+              <Pressable key={b.n} style={bookBtnStyle(i + CANON_COUNT === scrBook)} onPress={() => pickBook(i + CANON_COUNT)}>
+                <Text numberOfLines={2} style={[bookTextStyle(i + CANON_COUNT === scrBook), { textAlign: 'center' }]}>{b.n}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </>
+      )}
     </View>
   );
 }
