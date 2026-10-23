@@ -50,9 +50,9 @@ function HalfTri({ dir, side, w, h, color }: HalfTriProps) {
 }
 
 /**
- * Full compass-badge artwork held still, with a gold pointer arm and steel tail. The arm swings
- * to point at Jerusalem relative to where the device is facing; straight up (under the badge's
- * top pointer) means the device is facing Jerusalem.
+ * Jerusalem dial artwork held still, with a gold pointer arm and steel tail. The arm swings to
+ * point at Jerusalem relative to where the device is facing; straight up (under the marker)
+ * means the device is facing Jerusalem.
  */
 export function CompassDial() {
   const { smoothedHeading, bearingDeg, theme, isAligned } = useJerusalem();
@@ -62,11 +62,10 @@ export function CompassDial() {
     transform: [{ rotate: `${needleRotation.value}deg` }],
   }));
 
-  // The badge's glass face is smaller than the old full-bleed dial, so the needle is shorter.
-  const w = SIZE * 0.024;
-  const armH = SIZE * 0.34;
-  const tailH = SIZE * 0.31;
-  const hub = SIZE * 0.07;
+  const w = SIZE * 0.027;
+  const armH = SIZE * 0.41;
+  const tailH = SIZE * 0.37;
+  const hub = SIZE * 0.075;
 
   return (
     <View style={styles.container}>
@@ -77,9 +76,9 @@ export function CompassDial() {
         ]}>
         <View style={styles.dial}>
           <Image
-            source={require('@/assets/images/app/compass-badge-dial.png')}
+            source={require('@/assets/images/app/compass-dial-bg.jpg')}
             style={styles.dialImage}
-            resizeMode="contain"
+            resizeMode="cover"
           />
           <Animated.View style={[styles.fill, needleStyle]}>
             <View style={styles.needleShadow}>
@@ -96,6 +95,8 @@ export function CompassDial() {
             ]}
           />
         </View>
+        {/* fixed marker at the top; the gold arm under it means you face Jerusalem */}
+        <View style={[styles.topMarker, { borderTopColor: isAligned ? theme.gold : GOLD[0] }]} />
       </View>
     </View>
   );
@@ -104,7 +105,7 @@ export function CompassDial() {
 const styles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
   glow: { width: SIZE, height: SIZE, borderRadius: RADIUS, alignItems: 'center', justifyContent: 'center' },
-  dial: { width: SIZE, height: SIZE, position: 'absolute' },
+  dial: { width: SIZE, height: SIZE, borderRadius: RADIUS, overflow: 'hidden', position: 'absolute' },
   dialImage: { width: SIZE, height: SIZE, position: 'absolute', top: 0, left: 0 },
   fill: { position: 'absolute', top: 0, left: 0, width: SIZE, height: SIZE },
   needleShadow: {
@@ -118,4 +119,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#d9b45f',
     boxShadow: '0 1px 3px rgba(0,0,0,0.6)',
   } as object,
+  topMarker: {
+    position: 'absolute',
+    top: 3,
+    left: RADIUS - 6,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderTopWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+  },
 });
