@@ -168,12 +168,11 @@ export default function ScriptureScreen() {
                 <View style={[styles.readerFoot, { borderTopColor: theme.border }]}>
                   {hasSelection ? (
                     <>
-                      <Text style={{ flex: 1, color: theme.text, fontSize: 13, fontWeight: '800' }} numberOfLines={1}>{selectionRef}</Text>
-                      <Pressable style={[styles.saveBtn, { borderColor: theme.border }]} onPress={() => s.toggleSaveVerse({ b: s.scrBook, c: s.scrChapter, v: s.scrVerse! })}>
-                        <Text style={{ color: theme.text, fontSize: 13, fontWeight: '600' }}>{selSaved ? 'Saved' : 'Save'}</Text>
+                      <Pressable style={tabBtn(true)} onPress={() => s.toggleSaveVerse({ b: s.scrBook, c: s.scrChapter, v: s.scrVerse! })}>
+                        <Text style={tabText(true)}>{selSaved ? 'Saved' : 'Save'}</Text>
                       </Pressable>
-                      <Pressable style={[styles.useBtn, { backgroundColor: theme.accent }]} onPress={s.useInPrayer}>
-                        <Text style={{ color: theme.onaccent, fontSize: 13, fontWeight: '700' }}>Use in Prayer</Text>
+                      <Pressable style={tabBtn(true)} onPress={s.useInPrayer}>
+                        <Text style={tabText(true)}>Use in Prayer</Text>
                       </Pressable>
                     </>
                   ) : (
@@ -313,7 +312,7 @@ const styles = StyleSheet.create({
   readTop: { paddingHorizontal: 20, gap: 10 },
   readerWrap: { flex: 1, minHeight: 200, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 12 },
   headDivider: { width: 1, height: 18, marginHorizontal: 2 },
-  readerFoot: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 8, borderTopWidth: 1 },
+  readerFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 28, paddingHorizontal: 10, paddingVertical: 8, borderTopWidth: 1 },
   readerHead: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 8, borderBottomWidth: 1 },
   headArrow: { width: 32, height: 28, alignItems: 'center', justifyContent: 'center' },
   headTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 28 },
