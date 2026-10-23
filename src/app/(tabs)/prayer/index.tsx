@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/app-text';
 import { ScreenScroll } from '@/components/screen-scroll';
 import { SectionCard } from '@/components/section-card';
 import { ToggleSwitch } from '@/components/toggle-switch';
@@ -52,7 +53,7 @@ export default function PrayerSetupScreen() {
 
         {attachedRef && (
           <SectionCard style={styles.rowCard}>
-            <View>
+            <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={{ color: s.theme.text, fontSize: 14, fontWeight: '600' }}>{attachedRef}</Text>
               <Text style={{ color: s.theme.muted, fontSize: 12 }}>Shown during prayer</Text>
             </View>
@@ -63,7 +64,7 @@ export default function PrayerSetupScreen() {
         )}
 
         <SectionCard style={styles.rowCard}>
-          <View>
+          <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={{ color: s.theme.text, fontSize: 14, fontWeight: '600' }}>Silent Mode</Text>
             <Text style={{ color: s.theme.muted, fontSize: 12 }}>Mute all sound during prayer</Text>
           </View>

@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+
+import { Text } from '@/components/app-text';
 import Svg, { Path } from 'react-native-svg';
 
 import { FONTS } from '@/constants/fonts';

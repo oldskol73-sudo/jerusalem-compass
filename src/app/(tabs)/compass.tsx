@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/app-text';
 import { CompassDial } from '@/components/compass-dial';
 import { GhostButton } from '@/components/ghost-button';
 import { ScreenScroll } from '@/components/screen-scroll';
@@ -100,7 +101,7 @@ function Stat({ label, value, theme, border }: { label: string; value: string; t
 const styles = StyleSheet.create({
   title: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
   badge: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', textAlign: 'center' },
-  readoutRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  readoutRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', rowGap: 6 },
   statRow: { flexDirection: 'row', borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
   stat: { flex: 1, paddingVertical: 12, paddingHorizontal: 8, alignItems: 'center' },
   grid2: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },

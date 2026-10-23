@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/app-text';
 import { BackLink, ScreenTitle } from '@/components/screen-header';
 import { ScreenScroll } from '@/components/screen-scroll';
 import { useJerusalem } from '@/state/jerusalem-store';

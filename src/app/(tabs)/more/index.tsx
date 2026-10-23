@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/app-text';
 import { ScreenScroll } from '@/components/screen-scroll';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { FONTS } from '@/constants/fonts';
@@ -49,13 +50,13 @@ export default function MoreScreen() {
 
       <View style={styles.body}>
         <View style={{ gap: 8 }}>
-          <View style={styles.rowBetween}>
+          <View style={[styles.rowBetween, { flexWrap: 'wrap', columnGap: 12, rowGap: 2 }]}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Settings & More</Text>
             <Text style={[styles.smallCaps, { color: theme.muted }]}>Reading Atmosphere</Text>
           </View>
           <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <View style={styles.rowBetween}>
-              <View>
+            <View style={[styles.rowBetween, { gap: 12 }]}>
+              <View style={{ flex: 1 }}>
                 <Text style={{ color: theme.text, fontSize: 14, fontWeight: '600' }}>Show Cover at Launch</Text>
                 <Text style={{ color: theme.muted, fontSize: 12 }}>Open to the Face Jerusalem cover each time</Text>
               </View>
@@ -78,14 +79,14 @@ export default function MoreScreen() {
               disabled={!r.onPress}
               onPress={r.onPress}
               style={[styles.listRow, { borderBottomColor: theme.border, borderBottomWidth: i < rows.length - 1 ? 1 : 0 }]}>
-              <Text style={{ color: theme.text, fontSize: 14 }}>{r.label}</Text>
-              {r.value && <Text style={{ color: theme.muted, fontSize: 12.5 }}>{r.value}</Text>}
+              <Text style={{ color: theme.text, fontSize: 14, flexShrink: 1 }}>{r.label}</Text>
+              {r.value && <Text style={{ color: theme.muted, fontSize: 12.5, flexShrink: 1, textAlign: 'right' }}>{r.value}</Text>}
             </Pressable>
           ))}
         </View>
 
-        <View style={[styles.card, styles.rowBetween, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={{ color: theme.text, fontSize: 14 }}>Alignment haptic</Text>
+        <View style={[styles.card, styles.rowBetween, { gap: 12, backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={{ color: theme.text, fontSize: 14, flexShrink: 1 }}>Alignment haptic</Text>
           <ToggleSwitch on={s.hapticsEnabled} onToggle={s.toggleHaptics} />
         </View>
 
@@ -104,7 +105,8 @@ export default function MoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { width: '100%', height: 230, alignItems: 'center', justifyContent: 'center' },
+  // more-logo.jpg is 900x645; keep its aspect ratio so the artwork is never cropped or stretched.
+  hero: { width: '100%', aspectRatio: 900 / 645 },
   body: { paddingHorizontal: 20, gap: 18, marginTop: 16 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
@@ -113,5 +115,5 @@ const styles = StyleSheet.create({
   grid3: { flexDirection: 'row', gap: 8 },
   atmBtn: { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 10 },
   listCard: { borderWidth: 1, borderRadius: 16, overflow: 'hidden' },
-  listRow: { padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  listRow: { padding: 16, gap: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

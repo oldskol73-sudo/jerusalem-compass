@@ -118,7 +118,7 @@ export default function CoverScreen() {
 
           <Pressable style={styles.cta} onPress={() => router.replace('/(tabs)')}>
             <Animated.View style={[styles.shimmer, shimmerStyle]} />
-            <Text style={styles.ctaText} maxFontSizeMultiplier={1.2}>ENTER FACE JERUSALEM</Text>
+            <Text style={styles.ctaText} maxFontSizeMultiplier={1.2}>FIND JERUSALEM</Text>
           </Pressable>
         </View>
       </ScrollView>
