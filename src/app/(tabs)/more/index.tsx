@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Text } from '@/components/app-text';
 import { ScreenScroll } from '@/components/screen-scroll';
@@ -20,6 +20,9 @@ export default function MoreScreen() {
   const s = useJerusalem();
   const { setOpenSheet } = useSheets();
   const theme = s.theme;
+  const { width } = useWindowDimensions();
+  // Explicit pixel size: on iOS a percentage-width image rendered at a zoomed-in scale.
+  const heroHeight = Math.round((width * 645) / 900);
 
   const remindersOn = s.reminders.filter((r) => r.on).length;
   const remindersSummary = remindersOn ? `${remindersOn} daily` : 'Off';
@@ -46,7 +49,13 @@ export default function MoreScreen() {
 
   return (
     <ScreenScroll noTopInset contentStyle={{ paddingHorizontal: 0 }}>
-      <Image source={require('@/assets/images/app/more-logo.jpg')} style={styles.hero} resizeMode="cover" />
+      <View style={{ width, height: heroHeight, overflow: 'hidden', backgroundColor: '#05070f' }}>
+        <Image
+          source={require('@/assets/images/app/more-logo.jpg')}
+          style={{ position: 'absolute', top: 0, left: 0, width, height: heroHeight }}
+          resizeMode="stretch"
+        />
+      </View>
 
       <View style={styles.body}>
         <View style={{ gap: 8 }}>
@@ -105,8 +114,6 @@ export default function MoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  // more-logo.jpg is 900x645; keep its aspect ratio so the artwork is never cropped or stretched.
-  hero: { width: '100%', aspectRatio: 900 / 645 },
   body: { paddingHorizontal: 20, gap: 18, marginTop: 16 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
