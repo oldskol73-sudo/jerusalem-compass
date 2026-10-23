@@ -121,18 +121,19 @@ export default function ScriptureScreen() {
           <>
             <View style={[styles.readTop, { gap: 10 }]}>
               <View style={[styles.hero, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[styles.heroTag, { color: theme.muted }]}>Selected verse · {HIGHLIGHTS[group].label}</Text>
+                <Text style={[styles.heroTag, { color: theme.muted }]} numberOfLines={1}>
+                  {hasSelection ? `${selectionRef} · ${HIGHLIGHTS[group].label}` : `Selected verse · ${HIGHLIGHTS[group].label}`}
+                </Text>
                 {hasSelection ? (
                   <>
-                    <Text numberOfLines={4} style={{ color: theme.text, fontFamily: FONTS.serifRegular, fontSize: 16, lineHeight: 23 }}>
+                    <Text numberOfLines={3} style={{ color: theme.text, fontFamily: FONTS.serifRegular, fontSize: 15, lineHeight: 21 }}>
                       &ldquo;{selectedText}&rdquo;
                     </Text>
                     <View style={styles.heroRow}>
-                      <Text style={{ flex: 1, color: theme.text, fontSize: 14, fontWeight: '800' }} numberOfLines={1}>{selectionRef}</Text>
                       <Pressable style={[styles.saveBtn, { borderColor: theme.border }]} onPress={() => s.toggleSaveVerse({ b: s.scrBook, c: s.scrChapter, v: s.scrVerse! })}>
                         <Text style={{ color: theme.text, fontSize: 13, fontWeight: '600' }}>{selSaved ? 'Saved' : 'Save'}</Text>
                       </Pressable>
-                      <Pressable style={[styles.useBtn, { backgroundColor: theme.accent }]} onPress={s.useInPrayer}>
+                      <Pressable style={[styles.useBtn, { backgroundColor: theme.accent, flex: 1, alignItems: 'center' }]} onPress={s.useInPrayer}>
                         <Text style={{ color: theme.onaccent, fontSize: 13, fontWeight: '700' }}>Use in Prayer</Text>
                       </Pressable>
                     </View>
@@ -150,9 +151,9 @@ export default function ScriptureScreen() {
                       key={g.label}
                       accessibilityRole="tab"
                       accessibilityState={{ selected: active }}
-                      style={[styles.catBtn, { backgroundColor: active ? theme.accent : theme.surface, borderColor: active ? theme.accent : theme.border }]}
+                      style={[styles.catBtn, { borderBottomColor: active ? theme.accent : theme.border }]}
                       onPress={() => selectGroup(i)}>
-                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: active ? theme.onaccent : theme.text, fontSize: 11.5, fontWeight: '800' }}>{g.label}</Text>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: active ? theme.text : theme.muted, fontSize: 13, fontWeight: active ? '800' : '600' }}>{g.label}</Text>
                     </Pressable>
                   );
                 })}
@@ -190,21 +191,20 @@ export default function ScriptureScreen() {
               </View>
             </View>
 
-            <View style={[styles.readerWrap, { paddingBottom: 12 }]}>
-              <View style={[styles.chapterNav, { marginBottom: 8 }]}>
-                <Pressable style={[styles.navBtn, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={prevChapter} accessibilityLabel="Previous chapter">
-                  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M15 5l-7 7 7 7" stroke={theme.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                </Pressable>
-                <Pressable style={[styles.chapterTitleBtn, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => setOpenSheet('passage')}>
-                  <Text style={{ color: theme.text, fontFamily: FONTS.serifSemiBold, fontSize: 16 }} numberOfLines={1}>Read {bible[s.scrBook].n} {s.scrChapter + 1}</Text>
-                  <Svg width={12} height={12} viewBox="0 0 24 24" fill="none"><Path d="M6 9l6 6 6-6" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                </Pressable>
-                <Pressable style={[styles.navBtn, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={nextChapter} accessibilityLabel="Next chapter">
-                  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M9 5l7 7-7 7" stroke={theme.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                </Pressable>
-              </View>
-
+            <View style={styles.readerWrap}>
               <View style={[styles.readerFill, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <View style={[styles.readerHead, { borderBottomColor: theme.border }]}>
+                  <Pressable hitSlop={8} style={styles.headArrow} onPress={prevChapter} accessibilityLabel="Previous chapter">
+                    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M15 5l-7 7 7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Pressable>
+                  <Pressable style={styles.headTitle} onPress={() => setOpenSheet('passage')}>
+                    <Text style={{ color: theme.text, fontFamily: FONTS.serifSemiBold, fontSize: 15 }} numberOfLines={1}>Read {bible[s.scrBook].n} {s.scrChapter + 1}</Text>
+                    <Svg width={11} height={11} viewBox="0 0 24 24" fill="none"><Path d="M6 9l6 6 6-6" stroke={theme.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Pressable>
+                  <Pressable hitSlop={8} style={styles.headArrow} onPress={nextChapter} accessibilityLabel="Next chapter">
+                    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M9 5l7 7-7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Pressable>
+                </View>
                 <ScrollView
                   ref={readerRef}
                   nestedScrollEnabled
@@ -308,19 +308,22 @@ const styles = StyleSheet.create({
   tabBtn: { flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
   readRoot: { flex: 1 },
-  readTop: { paddingHorizontal: 20, gap: 12 },
-  readerWrap: { flex: 1, minHeight: 200, paddingHorizontal: 20, paddingTop: 10 },
+  readTop: { paddingHorizontal: 20, gap: 10 },
+  readerWrap: { flex: 1, minHeight: 200, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 12 },
+  readerHead: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 8, borderBottomWidth: 1 },
+  headArrow: { width: 32, height: 28, alignItems: 'center', justifyContent: 'center' },
+  headTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 28 },
   readerFill: { flex: 1, borderWidth: 1, borderRadius: 18, overflow: 'hidden' },
-  hero: { borderWidth: 1, borderRadius: 16, padding: 14, gap: 8 },
+  hero: { borderWidth: 1, borderRadius: 16, padding: 12, gap: 6 },
   heroTag: { fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   heroRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cats: { flexDirection: 'row', gap: 6 },
-  catBtn: { flex: 1, borderWidth: 1, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
+  catBtn: { flex: 1, borderBottomWidth: 2, paddingVertical: 8, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   chipRow: { flexDirection: 'row', gap: 8 },
   chapterNav: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   navBtn: { width: 44, height: 40, borderWidth: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   chapterTitleBtn: { flex: 1, height: 40, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  chip: { flex: 1, borderWidth: 1, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
+  chip: { flex: 1, borderWidth: 1, borderRadius: 999, paddingVertical: 6, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
   reader: { borderWidth: 1, borderRadius: 18, overflow: 'hidden' },
   readerContent: { padding: 12, gap: 2 },
   verseRow: { padding: 8, borderRadius: 10 },
