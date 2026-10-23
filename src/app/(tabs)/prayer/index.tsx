@@ -24,7 +24,7 @@ export default function PrayerSetupScreen() {
 
   return (
     <ScreenScroll noTopInset contentStyle={{ paddingHorizontal: 0 }}>
-      <ImageBackground source={require('@/assets/images/app/prayer-hero.jpg')} style={styles.hero} resizeMode="cover">
+      <ImageBackground source={require('@/assets/images/app/cover-daniel.jpg')} style={styles.hero} resizeMode="cover">
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={StyleSheet.absoluteFill} />
         <Text style={styles.heroTitle}>Prayer</Text>
       </ImageBackground>
@@ -90,7 +90,7 @@ export default function PrayerSetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { width: '100%', height: 230, alignItems: 'center', justifyContent: 'center' },
+  hero: { width: '100%', height: 300, alignItems: 'center', justifyContent: 'center' },
   heroTitle: { fontFamily: FONTS.serifSemiBold, fontSize: 22, color: '#fff' },
   body: { paddingHorizontal: 20, gap: 16, marginTop: 16 },
   sectionLabel: { fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
