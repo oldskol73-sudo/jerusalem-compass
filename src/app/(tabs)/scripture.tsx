@@ -67,11 +67,16 @@ export default function ScriptureScreen() {
     setSearched({ hits, total, term: query.trim() });
   };
 
+  // Plain words, no bubbles: the selected one is bold with a thin accent underline.
   const tabBtn = (active: boolean) => [
     styles.tabBtn,
-    { backgroundColor: active ? theme.accent : theme.card, borderColor: theme.border },
+    { borderBottomColor: active ? theme.accent : 'transparent' },
   ];
-  const tabText = (active: boolean) => ({ color: active ? theme.onaccent : theme.text, fontSize: 11, fontWeight: '600' as const });
+  const tabText = (active: boolean) => ({
+    color: active ? theme.text : theme.muted,
+    fontSize: 15,
+    fontWeight: (active ? '800' : '600') as '800' | '600',
+  });
 
   const hasSelection = s.scrVerse != null;
   const selectionRef = bible && hasSelection ? verseRef(bible, { b: s.scrBook, c: s.scrChapter, v: s.scrVerse! }) : '';
@@ -81,7 +86,6 @@ export default function ScriptureScreen() {
     <>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>Scripture</Text>
-        <Text style={[styles.kjv, { color: theme.muted }]}>King James Version</Text>
       </View>
 
       <View style={styles.tabRow}>
@@ -117,55 +121,6 @@ export default function ScriptureScreen() {
 
         {s.bibleReady && bible && (
           <>
-            <View style={[styles.readTop, { gap: 10 }]}>
-              <View style={styles.cats}>
-                {HIGHLIGHTS.map((g, i) => {
-                  const active = i === group;
-                  return (
-                    <Pressable
-                      key={g.label}
-                      accessibilityRole="tab"
-                      accessibilityState={{ selected: active }}
-                      style={[styles.catBtn, { borderBottomColor: active ? theme.accent : theme.border }]}
-                      onPress={() => selectGroup(i)}>
-                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: active ? theme.text : theme.muted, fontSize: 13, fontWeight: active ? '800' : '600' }}>{g.label}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <View style={{ gap: 6 }}>
-                {chunk(picks, 3).map((row, rowIndex) => (
-                  <View key={rowIndex} style={styles.chipRow}>
-                    {row.map(([name, c, v]) => {
-                      const b = bible.findIndex((x) => x.n === name);
-                      const active = b === s.scrBook && c - 1 === s.scrChapter && v - 1 === s.scrVerse;
-                      return (
-                        <Pressable
-                          key={`${name}${c}${v}`}
-                          style={[styles.chip, { backgroundColor: active ? theme.accent : theme.card, borderColor: active ? theme.accent : theme.border }]}
-                          onPress={() => openPick(name, c, v)}>
-                          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: active ? theme.onaccent : theme.text, fontSize: 12, fontWeight: '600' }}>
-                            {name === 'Psalms' ? 'Psalm' : name} {c}:{v}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                    {Array.from({ length: 3 - row.length }, (_, i) => (
-                      <View key={`pad-${i}`} style={{ flex: 1 }} />
-                    ))}
-                  </View>
-                ))}
-                {allPicks.length > PICKS_COLLAPSED && (
-                  <Pressable hitSlop={6} onPress={() => setExpanded((e) => !e)}>
-                    <Text style={{ textAlign: 'center', color: theme.accent, fontSize: 12, fontWeight: '700' }}>
-                      {expanded ? 'Show fewer' : `All ${allPicks.length} verses ▾`}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            </View>
-
             <View style={styles.readerWrap}>
               <View style={[styles.readerFill, { backgroundColor: theme.card, borderColor: theme.border }]}>
                 <View style={[styles.readerHead, { borderBottomColor: theme.border }]}>
@@ -175,6 +130,7 @@ export default function ScriptureScreen() {
                   <Pressable style={styles.headTitle} onPress={() => setOpenSheet('passage')}>
                     <Text style={{ color: theme.text, fontFamily: FONTS.serifSemiBold, fontSize: 15 }} numberOfLines={1}>Read {bible[s.scrBook].n} {s.scrChapter + 1}</Text>
                     <Svg width={11} height={11} viewBox="0 0 24 24" fill="none"><Path d="M6 9l6 6 6-6" stroke={theme.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                    <Text style={{ color: theme.muted, fontSize: 10.5, fontWeight: '800', letterSpacing: 1 }}>KJV</Text>
                   </Pressable>
                   <Pressable hitSlop={8} style={styles.headArrow} onPress={nextChapter} accessibilityLabel="Next chapter">
                     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M9 5l7 7-7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
@@ -226,6 +182,55 @@ export default function ScriptureScreen() {
                 </View>
               </View>
             </View>
+            <View style={[styles.readTop, { gap: 10, paddingBottom: 12 }]}>
+              <View style={styles.cats}>
+                {HIGHLIGHTS.map((g, i) => {
+                  const active = i === group;
+                  return (
+                    <Pressable
+                      key={g.label}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: active }}
+                      style={[styles.catBtn, { borderBottomColor: active ? theme.accent : theme.border }]}
+                      onPress={() => selectGroup(i)}>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: active ? theme.text : theme.muted, fontSize: 13, fontWeight: active ? '800' : '600' }}>{g.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <View style={{ gap: 6 }}>
+                {chunk(picks, 3).map((row, rowIndex) => (
+                  <View key={rowIndex} style={styles.chipRow}>
+                    {row.map(([name, c, v]) => {
+                      const b = bible.findIndex((x) => x.n === name);
+                      const active = b === s.scrBook && c - 1 === s.scrChapter && v - 1 === s.scrVerse;
+                      return (
+                        <Pressable
+                          key={`${name}${c}${v}`}
+                          style={[styles.chip, { backgroundColor: active ? theme.accent : theme.card, borderColor: active ? theme.accent : theme.border }]}
+                          onPress={() => openPick(name, c, v)}>
+                          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: active ? theme.onaccent : theme.text, fontSize: 12, fontWeight: '600' }}>
+                            {name === 'Psalms' ? 'Psalm' : name} {c}:{v}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                    {Array.from({ length: 3 - row.length }, (_, i) => (
+                      <View key={`pad-${i}`} style={{ flex: 1 }} />
+                    ))}
+                  </View>
+                ))}
+                {allPicks.length > PICKS_COLLAPSED && (
+                  <Pressable hitSlop={6} onPress={() => setExpanded((e) => !e)}>
+                    <Text style={{ textAlign: 'center', color: theme.accent, fontSize: 12, fontWeight: '700' }}>
+                      {expanded ? 'Show fewer' : `All ${allPicks.length} verses ▾`}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            </View>
+
           </>
         )}
       </View>
@@ -298,11 +303,11 @@ export default function ScriptureScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', columnGap: 12 },
+  header: { alignItems: 'center' },
   title: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
   kjv: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
-  tabRow: { flexDirection: 'row', gap: 8 },
-  tabBtn: { flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
+  tabRow: { flexDirection: 'row', justifyContent: 'center', gap: 28 },
+  tabBtn: { borderBottomWidth: 2, paddingVertical: 6, paddingHorizontal: 4, alignItems: 'center' },
   sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
   readRoot: { flex: 1 },
   readTop: { paddingHorizontal: 20, gap: 10 },
