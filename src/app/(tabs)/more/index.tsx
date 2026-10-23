@@ -1,7 +1,6 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenScroll } from '@/components/screen-scroll';
 import { ToggleSwitch } from '@/components/toggle-switch';
@@ -46,9 +45,7 @@ export default function MoreScreen() {
 
   return (
     <ScreenScroll noTopInset contentStyle={{ paddingHorizontal: 0 }}>
-      <LinearGradient colors={[theme.accent, theme.bg]} style={styles.hero}>
-        <Text style={styles.heroTitle}>Face Jerusalem</Text>
-      </LinearGradient>
+      <Image source={require('@/assets/images/app/more-logo.jpg')} style={styles.hero} resizeMode="cover" />
 
       <View style={styles.body}>
         <View style={{ gap: 8 }}>
@@ -108,7 +105,6 @@ export default function MoreScreen() {
 
 const styles = StyleSheet.create({
   hero: { width: '100%', height: 230, alignItems: 'center', justifyContent: 'center' },
-  heroTitle: { fontFamily: FONTS.serifSemiBold, fontSize: 22, color: '#fff' },
   body: { paddingHorizontal: 20, gap: 18, marginTop: 16 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
