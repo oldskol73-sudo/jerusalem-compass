@@ -67,16 +67,11 @@ export default function ScriptureScreen() {
     setSearched({ hits, total, term: query.trim() });
   };
 
-  // Plain text tabs: the selected one is underlined, with no filled bubbles.
   const tabBtn = (active: boolean) => [
     styles.tabBtn,
-    { borderBottomColor: active ? theme.accent : theme.border },
+    { backgroundColor: active ? theme.accent : theme.card, borderColor: theme.border },
   ];
-  const tabText = (active: boolean) => ({
-    color: active ? theme.text : theme.muted,
-    fontFamily: FONTS.serifSemiBold,
-    fontSize: 17,
-  });
+  const tabText = (active: boolean) => ({ color: active ? theme.onaccent : theme.text, fontSize: 11, fontWeight: '600' as const });
 
   const hasSelection = s.scrVerse != null;
   const selectionRef = bible && hasSelection ? verseRef(bible, { b: s.scrBook, c: s.scrChapter, v: s.scrVerse! }) : '';
@@ -84,6 +79,11 @@ export default function ScriptureScreen() {
 
   const header = (
     <>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.text }]}>Scripture</Text>
+        <Text style={[styles.kjv, { color: theme.muted }]}>King James Version</Text>
+      </View>
+
       <View style={styles.tabRow}>
         <Pressable style={tabBtn(tab === 'read')} onPress={() => setTab('read')}><Text style={tabText(tab === 'read')}>Read</Text></Pressable>
         <Pressable style={tabBtn(tab === 'search')} onPress={() => setTab('search')}><Text style={tabText(tab === 'search')}>Search</Text></Pressable>
@@ -109,34 +109,15 @@ export default function ScriptureScreen() {
     const [name, c, v] = HIGHLIGHTS[i].refs[0];
     openPick(name, c, v);
   };
-  const selectedText =
-    bible && hasSelection ? verseText(bible, { b: s.scrBook, c: s.scrChapter, v: s.scrVerse! }) : '';
 
   if (tab === 'read') {
     return (
       <View style={[styles.readRoot, { backgroundColor: theme.bg, paddingTop: insets.top + 16 }]}>
-        {!s.bibleReady && (
-          <View style={styles.readTop}>
-            <Text style={{ color: theme.muted, fontSize: 13, textAlign: 'center', paddingVertical: 40 }}>Loading the King James Bible…</Text>
-          </View>
-        )}
+        <View style={styles.readTop}>{header}</View>
 
         {s.bibleReady && bible && (
           <>
             <View style={[styles.readTop, { gap: 10 }]}>
-              <View style={[styles.hero, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[styles.heroTag, { color: theme.muted }]} numberOfLines={1}>
-                  {hasSelection ? `${selectionRef} · ${HIGHLIGHTS[group].label}` : `Selected verse · ${HIGHLIGHTS[group].label}`}
-                </Text>
-                {hasSelection ? (
-                  <Text numberOfLines={3} style={{ color: theme.text, fontFamily: FONTS.serifRegular, fontSize: 15, lineHeight: 21 }}>
-                    &ldquo;{selectedText}&rdquo;
-                  </Text>
-                ) : (
-                  <Text style={{ color: theme.muted, fontSize: 14, lineHeight: 20 }}>Pick a verse below, or tap one in the chapter, to save it or use it in prayer.</Text>
-                )}
-              </View>
-
               <View style={styles.cats}>
                 {HIGHLIGHTS.map((g, i) => {
                   const active = i === group;
@@ -321,7 +302,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
   kjv: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
   tabRow: { flexDirection: 'row', gap: 8 },
-  tabBtn: { flex: 1, borderBottomWidth: 2, paddingVertical: 8, alignItems: 'center' },
+  tabBtn: { flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
   readRoot: { flex: 1 },
   readTop: { paddingHorizontal: 20, gap: 10 },
@@ -332,9 +313,6 @@ const styles = StyleSheet.create({
   headArrow: { width: 32, height: 28, alignItems: 'center', justifyContent: 'center' },
   headTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 28 },
   readerFill: { flex: 1, borderWidth: 1, borderRadius: 18, overflow: 'hidden' },
-  hero: { borderWidth: 1, borderRadius: 16, padding: 12, gap: 6 },
-  heroTag: { fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
-  heroRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cats: { flexDirection: 'row', gap: 6 },
   catBtn: { flex: 1, borderBottomWidth: 2, paddingVertical: 8, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   chipRow: { flexDirection: 'row', gap: 8 },
