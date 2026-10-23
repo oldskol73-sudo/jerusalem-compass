@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenScroll } from '@/components/screen-scroll';
 import { SectionCard } from '@/components/section-card';
@@ -24,9 +24,10 @@ export default function PrayerSetupScreen() {
 
   return (
     <ScreenScroll noTopInset contentStyle={{ paddingHorizontal: 0 }}>
-      <LinearGradient colors={[s.theme.navactive, s.theme.bg]} style={styles.hero}>
+      <ImageBackground source={require('@/assets/images/app/prayer-hero.jpg')} style={styles.hero} resizeMode="cover">
+        <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={StyleSheet.absoluteFill} />
         <Text style={styles.heroTitle}>Prayer</Text>
-      </LinearGradient>
+      </ImageBackground>
 
       <View style={styles.body}>
         <View style={{ gap: 10 }}>

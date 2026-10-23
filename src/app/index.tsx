@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -13,7 +13,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CompassDial } from '@/components/compass-dial';
 import { FONTS } from '@/constants/fonts';
 import { formatDistance } from '@/constants/jerusalem';
 import { useJerusalem } from '@/state/jerusalem-store';
@@ -85,14 +84,15 @@ export default function CoverScreen() {
       <View style={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.brandRow}>
           <View style={styles.brandLine} />
+          <Image source={require('@/assets/images/app/tsp-mark.png')} style={styles.brandMark} resizeMode="contain" />
           <Text style={styles.brandText}>Twelve Scents Publishing</Text>
           <View style={styles.brandLine} />
         </View>
 
         <View style={styles.dialWrap}>
           <View style={styles.dialGlow} />
-          <View style={{ transform: [{ scale: 0.86 }] }}>
-            <CompassDial />
+          <View style={styles.portraitFrame}>
+            <Image source={require('@/assets/images/app/cover-daniel.jpg')} style={styles.portrait} resizeMode="cover" />
           </View>
         </View>
 
@@ -128,17 +128,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  brandLine: { width: 22, height: 1, backgroundColor: '#c9a24a' },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  brandLine: { width: 18, height: 1, backgroundColor: '#c9a24a' },
+  brandMark: { width: 16, height: 17 },
   brandText: { fontSize: 10, letterSpacing: 2.6, textTransform: 'uppercase', color: '#d9b866', fontWeight: '700' },
   dialWrap: { alignItems: 'center', justifyContent: 'center' },
   dialGlow: {
     position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
+    width: 300,
+    height: 300,
+    borderRadius: 24,
     backgroundColor: 'rgba(240,196,92,.22)',
   },
+  portraitFrame: {
+    width: 230,
+    height: 290,
+    borderRadius: 14,
+    padding: 4,
+    backgroundColor: '#d9b866',
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  portrait: { width: '100%', height: '100%', borderRadius: 11 },
   titleBlock: { alignItems: 'center', gap: 14, width: '100%' },
   title: {
     fontFamily: FONTS.serifSemiBold,

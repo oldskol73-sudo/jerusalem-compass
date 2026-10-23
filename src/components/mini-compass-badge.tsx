@@ -1,7 +1,6 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { useJerusalem } from '@/state/jerusalem-store';
@@ -24,12 +23,7 @@ export function MiniCompassBadge() {
   return (
     <Pressable onPress={() => router.push('/(tabs)/compass')} style={styles.wrap} accessibilityRole="button" accessibilityLabel="Open compass">
       <View style={[styles.circle, isAligned ? { shadowColor: theme.gold, shadowOpacity: 0.9, shadowRadius: 18, elevation: 8 } : null]}>
-        <LinearGradient
-          colors={[theme.dialhi, theme.dialbase]}
-          start={{ x: 0.3, y: 0.2 }}
-          end={{ x: 0.8, y: 1 }}
-          style={[StyleSheet.absoluteFill, { borderRadius: RADIUS }]}
-        />
+        <Image source={require('@/assets/images/app/compass-badge.png')} style={StyleSheet.absoluteFill} resizeMode="cover" />
         <Animated.View style={[styles.markerWrap, markerStyle]}>
           <View style={[styles.marker, { backgroundColor: theme.gold, shadowColor: theme.gold }]} />
         </Animated.View>

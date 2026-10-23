@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FONTS } from '@/constants/fonts';
 import { useJerusalem } from '@/state/jerusalem-store';
@@ -29,6 +29,7 @@ export function AboutSheet({ onClose }: { onClose: () => void }) {
           Know the direction. Face Jerusalem. Pray. Give thanks. Continue as aforetime.
         </Text>
       </View>
+      <Image source={require('@/assets/images/app/tsp-brand-wide.jpg')} style={styles.brandPlate} resizeMode="cover" />
       <Text style={{ color: theme.muted, fontSize: 11, textAlign: 'center' }}>Tap anywhere to close</Text>
     </Pressable>
   );
@@ -37,4 +38,5 @@ export function AboutSheet({ onClose }: { onClose: () => void }) {
 const styles = StyleSheet.create({
   title: { fontFamily: FONTS.serifSemiBold, fontSize: 17 },
   body: { fontSize: 14, lineHeight: 21 },
+  brandPlate: { width: '100%', aspectRatio: 1000 / 562, borderRadius: 14 },
 });

@@ -1,12 +1,14 @@
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 import { useJerusalem } from '@/state/jerusalem-store';
 
-const ICONS: Record<string, (color: string) => React.ReactNode> = {
+const PRAYER_TAB_ICON = require('@/assets/images/prayer-tab-icon.png');
+
+const ICONS: Record<string, (color: string, focused: boolean) => React.ReactNode> = {
   index: (color) => (
     <Svg width={21} height={21} viewBox="0 0 24 24" fill="none">
       <Path d="M4 11.5L12 4l8 7.5" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
@@ -19,11 +21,10 @@ const ICONS: Record<string, (color: string) => React.ReactNode> = {
       <Path d="M15 9l-2 5-4 1.5 2-5.5z" fill={color} />
     </Svg>
   ),
-  prayer: (color) => (
-    <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-      <Path d="M8 20V10a4 4 0 018 0v10" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Path d="M8 20h8" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-    </Svg>
+  prayer: (color, focused) => (
+    <View style={[styles.prayerIconRing, { borderColor: focused ? color : 'transparent' }]}>
+      <Image source={PRAYER_TAB_ICON} style={styles.prayerIcon} />
+    </View>
   ),
   scripture: (color) => (
     <Svg width={21} height={21} viewBox="0 0 24 24" fill="none">
@@ -61,7 +62,7 @@ export function JerusalemTabBar({ state, navigation }: BottomTabBarProps) {
             onPress={() => navigation.navigate(route.name)}
             style={styles.btn}
             accessibilityRole="button">
-            {ICONS[route.name]?.(color)}
+            {ICONS[route.name]?.(color, focused)}
             <Text style={{ fontSize: 10.5, color, fontWeight: route.name === 'prayer' ? '700' : '400' }}>
               {LABELS[route.name] ?? route.name}
             </Text>
@@ -82,4 +83,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   btn: { alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 4, minWidth: 48 },
+  prayerIconRing: {
+    width: 25,
+    height: 25,
+    borderRadius: 13,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  prayerIcon: { width: 21, height: 21, borderRadius: 11 },
 });
