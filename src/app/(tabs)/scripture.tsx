@@ -115,7 +115,11 @@ export default function ScriptureScreen() {
   if (tab === 'read') {
     return (
       <View style={[styles.readRoot, { backgroundColor: theme.bg, paddingTop: insets.top + 16 }]}>
-        <View style={styles.readTop}>{header}</View>
+        {!s.bibleReady && (
+          <View style={styles.readTop}>
+            <Text style={{ color: theme.muted, fontSize: 13, textAlign: 'center', paddingVertical: 40 }}>Loading the King James Bible…</Text>
+          </View>
+        )}
 
         {s.bibleReady && bible && (
           <>
@@ -125,19 +129,9 @@ export default function ScriptureScreen() {
                   {hasSelection ? `${selectionRef} · ${HIGHLIGHTS[group].label}` : `Selected verse · ${HIGHLIGHTS[group].label}`}
                 </Text>
                 {hasSelection ? (
-                  <>
-                    <Text numberOfLines={3} style={{ color: theme.text, fontFamily: FONTS.serifRegular, fontSize: 15, lineHeight: 21 }}>
-                      &ldquo;{selectedText}&rdquo;
-                    </Text>
-                    <View style={styles.heroRow}>
-                      <Pressable style={[styles.saveBtn, { borderColor: theme.border }]} onPress={() => s.toggleSaveVerse({ b: s.scrBook, c: s.scrChapter, v: s.scrVerse! })}>
-                        <Text style={{ color: theme.text, fontSize: 13, fontWeight: '600' }}>{selSaved ? 'Saved' : 'Save'}</Text>
-                      </Pressable>
-                      <Pressable style={[styles.useBtn, { backgroundColor: theme.accent, flex: 1, alignItems: 'center' }]} onPress={s.useInPrayer}>
-                        <Text style={{ color: theme.onaccent, fontSize: 13, fontWeight: '700' }}>Use in Prayer</Text>
-                      </Pressable>
-                    </View>
-                  </>
+                  <Text numberOfLines={3} style={{ color: theme.text, fontFamily: FONTS.serifRegular, fontSize: 15, lineHeight: 21 }}>
+                    &ldquo;{selectedText}&rdquo;
+                  </Text>
                 ) : (
                   <Text style={{ color: theme.muted, fontSize: 14, lineHeight: 20 }}>Pick a verse below, or tap one in the chapter, to save it or use it in prayer.</Text>
                 )}
@@ -204,6 +198,13 @@ export default function ScriptureScreen() {
                   <Pressable hitSlop={8} style={styles.headArrow} onPress={nextChapter} accessibilityLabel="Next chapter">
                     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M9 5l7 7-7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
                   </Pressable>
+                  <View style={[styles.headDivider, { backgroundColor: theme.border }]} />
+                  <Pressable hitSlop={8} style={styles.headArrow} onPress={() => setTab('search')} accessibilityLabel="Search">
+                    <Svg width={17} height={17} viewBox="0 0 24 24" fill="none"><Path d="M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15zM16 16l5 5" stroke={theme.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Pressable>
+                  <Pressable hitSlop={8} style={styles.headArrow} onPress={() => setTab('saved')} accessibilityLabel="Saved verses">
+                    <Svg width={17} height={17} viewBox="0 0 24 24" fill="none"><Path d="M6 4h12v16l-6-4-6 4z" stroke={theme.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                  </Pressable>
                 </View>
                 <ScrollView
                   ref={readerRef}
@@ -227,6 +228,21 @@ export default function ScriptureScreen() {
                     );
                   })}
                 </ScrollView>
+                <View style={[styles.readerFoot, { borderTopColor: theme.border }]}>
+                  {hasSelection ? (
+                    <>
+                      <Text style={{ flex: 1, color: theme.text, fontSize: 13, fontWeight: '800' }} numberOfLines={1}>{selectionRef}</Text>
+                      <Pressable style={[styles.saveBtn, { borderColor: theme.border }]} onPress={() => s.toggleSaveVerse({ b: s.scrBook, c: s.scrChapter, v: s.scrVerse! })}>
+                        <Text style={{ color: theme.text, fontSize: 13, fontWeight: '600' }}>{selSaved ? 'Saved' : 'Save'}</Text>
+                      </Pressable>
+                      <Pressable style={[styles.useBtn, { backgroundColor: theme.accent }]} onPress={s.useInPrayer}>
+                        <Text style={{ color: theme.onaccent, fontSize: 13, fontWeight: '700' }}>Use in Prayer</Text>
+                      </Pressable>
+                    </>
+                  ) : (
+                    <Text style={{ flex: 1, textAlign: 'center', color: theme.muted, fontSize: 12.5 }}>Tap a verse to save it or use it in prayer</Text>
+                  )}
+                </View>
               </View>
             </View>
           </>
@@ -310,6 +326,8 @@ const styles = StyleSheet.create({
   readRoot: { flex: 1 },
   readTop: { paddingHorizontal: 20, gap: 10 },
   readerWrap: { flex: 1, minHeight: 200, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 12 },
+  headDivider: { width: 1, height: 18, marginHorizontal: 2 },
+  readerFoot: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, paddingVertical: 8, borderTopWidth: 1 },
   readerHead: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 8, borderBottomWidth: 1 },
   headArrow: { width: 32, height: 28, alignItems: 'center', justifyContent: 'center' },
   headTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 28 },
