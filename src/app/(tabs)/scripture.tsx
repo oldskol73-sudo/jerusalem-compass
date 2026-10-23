@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
@@ -13,7 +13,13 @@ import { useSheets } from '@/state/sheets-store';
 
 type Tab = 'read' | 'search' | 'saved';
 
-const PICKS_PER_PAGE = 2;
+const PICKS_COLLAPSED = 6;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
+  return rows;
+}
 
 export default function ScriptureScreen() {
   const s = useJerusalem();
@@ -24,12 +30,9 @@ export default function ScriptureScreen() {
 
   const theme = s.theme;
   const bible = s.bible;
-  const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  // The reader is a small fixed area at the top that scrolls inside itself.
-  const readerHeight = Math.round(Math.max(170, Math.min(260, windowHeight * 0.26)));
   const [group, setGroup] = useState(0);
-  const [page, setPage] = useState(0);
+  const [expanded, setExpanded] = useState(false);
   const readerRef = useRef<ScrollView>(null);
   const verseOffsets = useRef<Record<number, number>>({});
 
@@ -93,9 +96,8 @@ export default function ScriptureScreen() {
     </>
   );
 
-  const picks = HIGHLIGHTS[group].refs;
-  const pageCount = Math.ceil(picks.length / PICKS_PER_PAGE);
-  const pagePicks = picks.slice(page * PICKS_PER_PAGE, page * PICKS_PER_PAGE + PICKS_PER_PAGE);
+  const allPicks = HIGHLIGHTS[group].refs;
+  const picks = expanded ? allPicks : allPicks.slice(0, PICKS_COLLAPSED);
   const openPick = (name: string, c: number, v: number) => {
     if (!bible) return;
     const b = bible.findIndex((x) => x.n === name);
@@ -103,34 +105,106 @@ export default function ScriptureScreen() {
   };
   const selectGroup = (i: number) => {
     setGroup(i);
-    setPage(0);
+    setExpanded(false);
     const [name, c, v] = HIGHLIGHTS[i].refs[0];
     openPick(name, c, v);
   };
+  const selectedText =
+    bible && hasSelection ? verseText(bible, { b: s.scrBook, c: s.scrChapter, v: s.scrVerse! }) : '';
 
   if (tab === 'read') {
     return (
-      <View style={[styles.readRoot, { backgroundColor: theme.bg }]}>
-        <ScrollView
-          contentContainerStyle={[styles.readContent, { paddingTop: insets.top + 16 }]}
-          showsVerticalScrollIndicator={false}>
-          {header}
+      <View style={[styles.readRoot, { backgroundColor: theme.bg, paddingTop: insets.top + 16 }]}>
+        <View style={styles.readTop}>{header}</View>
 
-          {s.bibleReady && bible && (
-            <>
-              <View style={[styles.reader, { height: readerHeight, backgroundColor: theme.card, borderColor: theme.border }]}>
-                <View style={[styles.readerHead, { borderBottomColor: theme.border }]}>
-                  <Pressable hitSlop={8} style={styles.headArrow} onPress={prevChapter} accessibilityLabel="Previous chapter">
-                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none"><Path d="M15 5l-7 7 7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+        {s.bibleReady && bible && (
+          <>
+            <View style={[styles.readTop, { gap: 10 }]}>
+              <View style={[styles.hero, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <Text style={[styles.heroTag, { color: theme.muted }]}>Selected verse · {HIGHLIGHTS[group].label}</Text>
+                {hasSelection ? (
+                  <>
+                    <Text numberOfLines={4} style={{ color: theme.text, fontFamily: FONTS.serifRegular, fontSize: 16, lineHeight: 23 }}>
+                      &ldquo;{selectedText}&rdquo;
+                    </Text>
+                    <View style={styles.heroRow}>
+                      <Text style={{ flex: 1, color: theme.text, fontSize: 14, fontWeight: '800' }} numberOfLines={1}>{selectionRef}</Text>
+                      <Pressable style={[styles.saveBtn, { borderColor: theme.border }]} onPress={() => s.toggleSaveVerse({ b: s.scrBook, c: s.scrChapter, v: s.scrVerse! })}>
+                        <Text style={{ color: theme.text, fontSize: 13, fontWeight: '600' }}>{selSaved ? 'Saved' : 'Save'}</Text>
+                      </Pressable>
+                      <Pressable style={[styles.useBtn, { backgroundColor: theme.accent }]} onPress={s.useInPrayer}>
+                        <Text style={{ color: theme.onaccent, fontSize: 13, fontWeight: '700' }}>Use in Prayer</Text>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : (
+                  <Text style={{ color: theme.muted, fontSize: 14, lineHeight: 20 }}>Pick a verse below, or tap one in the chapter, to save it or use it in prayer.</Text>
+                )}
+              </View>
+
+              <View style={styles.cats}>
+                {HIGHLIGHTS.map((g, i) => {
+                  const active = i === group;
+                  return (
+                    <Pressable
+                      key={g.label}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: active }}
+                      style={[styles.catBtn, { backgroundColor: active ? theme.accent : theme.surface, borderColor: active ? theme.accent : theme.border }]}
+                      onPress={() => selectGroup(i)}>
+                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: active ? theme.onaccent : theme.text, fontSize: 11.5, fontWeight: '800' }}>{g.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <View style={{ gap: 6 }}>
+                {chunk(picks, 3).map((row, rowIndex) => (
+                  <View key={rowIndex} style={styles.chipRow}>
+                    {row.map(([name, c, v]) => {
+                      const b = bible.findIndex((x) => x.n === name);
+                      const active = b === s.scrBook && c - 1 === s.scrChapter && v - 1 === s.scrVerse;
+                      return (
+                        <Pressable
+                          key={`${name}${c}${v}`}
+                          style={[styles.chip, { backgroundColor: active ? theme.accent : theme.card, borderColor: active ? theme.accent : theme.border }]}
+                          onPress={() => openPick(name, c, v)}>
+                          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: active ? theme.onaccent : theme.text, fontSize: 12, fontWeight: '600' }}>
+                            {name === 'Psalms' ? 'Psalm' : name} {c}:{v}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                    {Array.from({ length: 3 - row.length }, (_, i) => (
+                      <View key={`pad-${i}`} style={{ flex: 1 }} />
+                    ))}
+                  </View>
+                ))}
+                {allPicks.length > PICKS_COLLAPSED && (
+                  <Pressable hitSlop={6} onPress={() => setExpanded((e) => !e)}>
+                    <Text style={{ textAlign: 'center', color: theme.accent, fontSize: 12, fontWeight: '700' }}>
+                      {expanded ? 'Show fewer' : `All ${allPicks.length} verses ▾`}
+                    </Text>
                   </Pressable>
-                  <Pressable style={styles.headTitle} onPress={() => setOpenSheet('passage')}>
-                    <Text style={{ color: theme.text, fontFamily: FONTS.serifSemiBold, fontSize: 14 }} numberOfLines={1}>{bible[s.scrBook].n} {s.scrChapter + 1}</Text>
-                    <Svg width={11} height={11} viewBox="0 0 24 24" fill="none"><Path d="M6 9l6 6 6-6" stroke={theme.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                  </Pressable>
-                  <Pressable hitSlop={8} style={styles.headArrow} onPress={nextChapter} accessibilityLabel="Next chapter">
-                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none"><Path d="M9 5l7 7-7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                  </Pressable>
-                </View>
+                )}
+              </View>
+            </View>
+
+            <View style={[styles.readerWrap, { paddingBottom: 12 }]}>
+              <View style={[styles.chapterNav, { marginBottom: 8 }]}>
+                <Pressable style={[styles.navBtn, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={prevChapter} accessibilityLabel="Previous chapter">
+                  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M15 5l-7 7 7 7" stroke={theme.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                </Pressable>
+                <Pressable style={[styles.chapterTitleBtn, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={() => setOpenSheet('passage')}>
+                  <Text style={{ color: theme.text, fontFamily: FONTS.serifSemiBold, fontSize: 16 }} numberOfLines={1}>Read {bible[s.scrBook].n} {s.scrChapter + 1}</Text>
+                  <Svg width={12} height={12} viewBox="0 0 24 24" fill="none"><Path d="M6 9l6 6 6-6" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                </Pressable>
+                <Pressable style={[styles.navBtn, { backgroundColor: theme.card, borderColor: theme.border }]} onPress={nextChapter} accessibilityLabel="Next chapter">
+                  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none"><Path d="M9 5l7 7-7 7" stroke={theme.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+                </Pressable>
+              </View>
+
+              <View style={[styles.readerFill, { backgroundColor: theme.card, borderColor: theme.border }]}>
                 <ScrollView
                   ref={readerRef}
                   nestedScrollEnabled
@@ -154,94 +228,8 @@ export default function ScriptureScreen() {
                   })}
                 </ScrollView>
               </View>
-
-              <View style={styles.cats}>
-                {HIGHLIGHTS.map((g, i) => {
-                  const active = i === group;
-                  return (
-                    <Pressable
-                      key={g.label}
-                      accessibilityRole="tab"
-                      accessibilityState={{ selected: active }}
-                      style={[styles.catBtn, { backgroundColor: active ? theme.accent : theme.surface, borderColor: active ? theme.accent : theme.border }]}
-                      onPress={() => selectGroup(i)}>
-                      <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={{ color: active ? theme.onaccent : theme.text, fontSize: 11.5, fontWeight: '800' }}>{g.label}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <View style={{ gap: 8 }}>
-                {pagePicks.map(([name, c, v]) => {
-                  const b = bible.findIndex((x) => x.n === name);
-                  const active = b === s.scrBook && c - 1 === s.scrChapter && v - 1 === s.scrVerse;
-                  return (
-                    <Pressable
-                      key={`${name}${c}${v}`}
-                      accessibilityState={{ selected: active }}
-                      style={[styles.pickCard, { backgroundColor: theme.card, borderColor: active ? theme.accent : theme.border, borderWidth: active ? 2 : 1 }]}
-                      onPress={() => openPick(name, c, v)}>
-                      <Text style={{ color: theme.navactive, fontSize: 10.5, letterSpacing: 1, fontWeight: '800', textTransform: 'uppercase' }}>
-                        {name === 'Psalms' ? 'Psalm' : name} {c}:{v}
-                      </Text>
-                      <Text numberOfLines={2} style={{ color: theme.text, fontFamily: FONTS.serifRegular, fontSize: 14, lineHeight: 20 }}>
-                        {b >= 0 ? verseText(bible, { b, c: c - 1, v: v - 1 }) : ''}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <View style={styles.pager}>
-                <Pressable
-                  disabled={page === 0}
-                  hitSlop={8}
-                  style={[styles.pagerBtn, { backgroundColor: theme.card, borderColor: theme.border, opacity: page === 0 ? 0.35 : 1 }]}
-                  onPress={() => setPage((p) => Math.max(0, p - 1))}
-                  accessibilityLabel="Previous verses">
-                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none"><Path d="M15 5l-7 7 7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                </Pressable>
-                <View style={{ alignItems: 'center', gap: 5 }}>
-                  <Text style={{ color: theme.muted, fontSize: 11.5, fontWeight: '700' }}>
-                    {page * PICKS_PER_PAGE + 1}–{Math.min((page + 1) * PICKS_PER_PAGE, picks.length)} of {picks.length}
-                  </Text>
-                  <View style={{ flexDirection: 'row', gap: 5 }}>
-                    {Array.from({ length: pageCount }, (_, i) => (
-                      <View key={i} style={[styles.dot, { backgroundColor: i === page ? theme.accent : 'rgba(43,43,43,0.25)' }]} />
-                    ))}
-                  </View>
-                </View>
-                <Pressable
-                  disabled={page >= pageCount - 1}
-                  hitSlop={8}
-                  style={[styles.pagerBtn, { backgroundColor: theme.card, borderColor: theme.border, opacity: page >= pageCount - 1 ? 0.35 : 1 }]}
-                  onPress={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                  accessibilityLabel="Next verses">
-                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none"><Path d="M9 5l7 7-7 7" stroke={theme.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
-                </Pressable>
-              </View>
-            </>
-          )}
-        </ScrollView>
-
-        {s.bibleReady && bible && (
-          <View style={[styles.anchor, { backgroundColor: theme.bg }]}>
-            <View style={[styles.actionCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              {hasSelection ? (
-                <>
-                  <Text style={{ flex: 1, color: theme.text, fontSize: 15, fontWeight: '700' }} numberOfLines={1}>{selectionRef}</Text>
-                  <Pressable style={[styles.saveBtn, { borderColor: theme.border }]} onPress={() => s.toggleSaveVerse({ b: s.scrBook, c: s.scrChapter, v: s.scrVerse! })}>
-                    <Text style={{ color: theme.text, fontSize: 13, fontWeight: '600' }}>{selSaved ? 'Saved' : 'Save'}</Text>
-                  </Pressable>
-                  <Pressable style={[styles.useBtn, { backgroundColor: theme.accent }]} onPress={s.useInPrayer}>
-                    <Text style={{ color: theme.onaccent, fontSize: 13, fontWeight: '700' }}>Use in Prayer</Text>
-                  </Pressable>
-                </>
-              ) : (
-                <Text style={{ flex: 1, fontSize: 13, color: theme.muted, textAlign: 'center' }}>Tap a verse to save it or use it in prayer</Text>
-              )}
             </View>
-          </View>
+          </>
         )}
       </View>
     );
@@ -320,17 +308,19 @@ const styles = StyleSheet.create({
   tabBtn: { flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
   sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
   readRoot: { flex: 1 },
-  readContent: { paddingHorizontal: 20, paddingBottom: 12, gap: 12 },
+  readTop: { paddingHorizontal: 20, gap: 12 },
+  readerWrap: { flex: 1, minHeight: 200, paddingHorizontal: 20, paddingTop: 10 },
+  readerFill: { flex: 1, borderWidth: 1, borderRadius: 18, overflow: 'hidden' },
+  hero: { borderWidth: 1, borderRadius: 16, padding: 14, gap: 8 },
+  heroTag: { fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  heroRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cats: { flexDirection: 'row', gap: 6 },
   catBtn: { flex: 1, borderWidth: 1, borderRadius: 999, paddingVertical: 9, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
-  pickCard: { borderRadius: 14, paddingVertical: 10, paddingHorizontal: 12, gap: 3, minHeight: 72 },
-  pager: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  pagerBtn: { width: 40, height: 30, borderWidth: 1, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  readerHead: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 6, borderBottomWidth: 1 },
-  headArrow: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  headTitle: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 28 },
-  anchor: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
+  chipRow: { flexDirection: 'row', gap: 8 },
+  chapterNav: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  navBtn: { width: 44, height: 40, borderWidth: 1, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  chapterTitleBtn: { flex: 1, height: 40, borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  chip: { flex: 1, borderWidth: 1, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
   reader: { borderWidth: 1, borderRadius: 18, overflow: 'hidden' },
   readerContent: { padding: 12, gap: 2 },
   verseRow: { padding: 8, borderRadius: 10 },
