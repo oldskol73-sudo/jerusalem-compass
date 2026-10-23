@@ -23,7 +23,7 @@ export function MiniCompassBadge() {
   return (
     <Pressable onPress={() => router.push('/(tabs)/compass')} style={styles.wrap} accessibilityRole="button" accessibilityLabel="Open compass">
       <View style={[styles.circle, isAligned ? { shadowColor: theme.gold, shadowOpacity: 0.9, shadowRadius: 18, elevation: 8 } : null]}>
-        <Image source={require('@/assets/images/app/compass-badge.png')} style={StyleSheet.absoluteFill} resizeMode="contain" />
+        <Image source={require('@/assets/images/app/compass-badge.png')} style={styles.image} resizeMode="contain" />
         <Animated.View style={[styles.markerWrap, markerStyle]}>
           <View style={[styles.marker, { backgroundColor: theme.gold, shadowColor: theme.gold }]} />
         </Animated.View>
@@ -39,8 +39,11 @@ const styles = StyleSheet.create({
   circle: {
     width: SIZE,
     height: SIZE,
-    borderRadius: RADIUS,
+    borderRadius: SIZE * 0.2,
+    overflow: 'hidden',
   },
+  // Explicit pixel size: absoluteFill let the 420px art spill past the card on iOS.
+  image: { position: 'absolute', top: 0, left: 0, width: SIZE, height: SIZE },
   markerWrap: { position: 'absolute', inset: 0 } as object,
   marker: {
     position: 'absolute', top: 15, left: RADIUS - 4.5, width: 9, height: 9, borderRadius: 2,
