@@ -1,9 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Text } from '@/components/app-text';
 import { ScreenScroll } from '@/components/screen-scroll';
+import { COVER_STYLE_KEY, COVERS, isCoverStyle, type CoverStyle } from '@/components/covers/registry';
 import { ToggleSwitch } from '@/components/toggle-switch';
 import { FONTS } from '@/constants/fonts';
 import { type Atmosphere } from '@/constants/jerusalem';
@@ -20,6 +22,20 @@ export default function MoreScreen() {
   const s = useJerusalem();
   const { setOpenSheet } = useSheets();
   const theme = s.theme;
+  const [coverStyle, setCoverStyleState] = useState<CoverStyle>('random');
+  useEffect(() => {
+    AsyncStorage.getItem(COVER_STYLE_KEY)
+      .then((v) => { if (isCoverStyle(v)) setCoverStyleState(v); })
+      .catch(() => {});
+  }, []);
+  const chooseCoverStyle = (next: CoverStyle) => {
+    setCoverStyleState(next);
+    AsyncStorage.setItem(COVER_STYLE_KEY, next).catch(() => {});
+  };
+  const coverOptions: { key: CoverStyle; label: string }[] = [
+    { key: 'random', label: 'Random' },
+    ...COVERS.map((c) => ({ key: c.key as CoverStyle, label: c.label })),
+  ];
   const { width } = useWindowDimensions();
   // Explicit pixel size: on iOS a percentage-width image rendered at a zoomed-in scale.
   const heroHeight = Math.round((width * 645) / 900);
@@ -71,6 +87,41 @@ export default function MoreScreen() {
               </View>
               <ToggleSwitch on={s.showCoverAtLaunch} onToggle={s.toggleShowCoverAtLaunch} />
             </View>
+
+            <View style={[styles.cardDivider, { backgroundColor: theme.border }]} />
+
+            <View style={{ opacity: s.showCoverAtLaunch ? 1 : 0.45, gap: 8 }}>
+              <Text style={[styles.smallCaps, { color: theme.muted }]}>Opening cover</Text>
+              <View style={styles.optionRow}>
+                {coverOptions.map((o) => {
+                  const active = coverStyle === o.key;
+                  return (
+                    <Pressable
+                      key={o.key}
+                      disabled={!s.showCoverAtLaunch}
+                      accessibilityState={{ selected: active }}
+                      style={[styles.option, { borderBottomColor: active ? theme.accent : 'transparent' }]}
+                      onPress={() => chooseCoverStyle(o.key)}>
+                      <Text style={{ color: active ? theme.text : theme.muted, fontSize: 13, fontWeight: active ? '800' : '600' }}>{o.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={{ gap: 8, marginTop: 14 }}>
+              <Text style={[styles.smallCaps, { color: theme.muted }]}>Preview a cover</Text>
+              <View style={styles.optionRow}>
+                {COVERS.map((c) => (
+                  <Pressable
+                    key={c.key}
+                    style={styles.option}
+                    onPress={() => router.push({ pathname: '/cover-preview', params: { style: c.key } })}>
+                    <Text style={{ color: theme.accent, fontSize: 13, fontWeight: '700' }}>{c.label} ›</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
           </View>
           <View style={styles.grid3}>
             {ATMOSPHERES.map((a) => (
@@ -119,6 +170,9 @@ const styles = StyleSheet.create({
   sectionTitle: { fontFamily: FONTS.serifSemiBold, fontSize: 20 },
   smallCaps: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase' },
   card: { borderWidth: 1, borderRadius: 14, padding: 16 },
+  cardDivider: { height: 1, marginVertical: 14 },
+  optionRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 18, rowGap: 6 },
+  option: { paddingVertical: 4, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   grid3: { flexDirection: 'row', gap: 8 },
   atmBtn: { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 10 },
   listCard: { borderWidth: 1, borderRadius: 16, overflow: 'hidden' },
