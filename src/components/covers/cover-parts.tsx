@@ -19,8 +19,10 @@ export const GOLD_SOFT = '#d9b866';
 export const GOLD_LIGHT = '#f2d488';
 export const CREAM = '#efe3c4';
 
+/** Opens the app from the launch cover; from a Settings preview it just closes the preview. */
 export function enterApp() {
-  router.replace('/(tabs)');
+  if (router.canGoBack()) router.back();
+  else router.replace('/(tabs)');
 }
 
 /** Small twinkling star. */
