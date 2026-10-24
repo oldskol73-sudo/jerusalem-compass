@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo } from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -82,13 +82,12 @@ export function Stars({ count = 46, maxTop = 70 }: { count?: number; maxTop?: nu
   );
 }
 
-/** "TWELVE SCENTS PUBLISHING" with the mark; `lines` adds the gold rules either side. */
+/** "TWELVE SCENTS PUBLISHING"; `lines` adds the gold rules either side. */
 export function BrandRow({ lines = true }: { lines?: boolean }) {
   return (
     <View style={styles.brandRow}>
       {lines && <View style={styles.brandLine} />}
-      <Image source={require('@/assets/images/app/tsp-mark.png')} style={styles.brandMark} resizeMode="contain" />
-      <Text style={styles.brandText} numberOfLines={1}>Twelve Scents Publishing</Text>
+      <Text style={styles.brandText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>Twelve Scents Publishing</Text>
       {lines && <View style={styles.brandLine} />}
     </View>
   );
@@ -145,7 +144,6 @@ export function FindButton({ variant }: { variant: 'pill' | 'rect' | 'outline' }
 const styles = StyleSheet.create({
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8, maxWidth: '100%' },
   brandLine: { width: 20, height: 1, backgroundColor: '#c9a24a' },
-  brandMark: { width: 16, height: 17 },
   brandText: { flexShrink: 1, fontSize: 10, letterSpacing: 2.6, textTransform: 'uppercase', color: GOLD_SOFT, fontWeight: '700' },
   rule: { flex: 1, height: 1 },
   diamond: { width: 7, height: 7, backgroundColor: '#e6c46c', transform: [{ rotate: '45deg' }] },
