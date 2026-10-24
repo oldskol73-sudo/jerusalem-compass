@@ -29,10 +29,11 @@ function useSmoothRotation(deg: number) {
   return value;
 }
 
-export function CompassDial() {
+/** The layered compass. Pass `size` for a fixed size (the Home preview); otherwise it fills the screen width. */
+export function CompassDial({ size: fixedSize }: { size?: number } = {}) {
   const { smoothedHeading, bearingDeg, theme, isAligned } = useJerusalem();
   const { width } = useWindowDimensions();
-  const size = Math.round(Math.min(width - 40, 340));
+  const size = fixedSize ?? Math.round(Math.min(width - 40, 340));
   const needleSize = Math.round(size * NEEDLE_SCALE);
 
   const ringRotation = useSmoothRotation(-smoothedHeading);
@@ -50,7 +51,7 @@ export function CompassDial() {
           width: size,
           height: size,
           borderRadius: size / 2,
-          boxShadow: isAligned ? `0 0 34px ${theme.gold}` : undefined,
+          boxShadow: isAligned ? `0 0 ${fixedSize ? 18 : 34}px ${theme.gold}` : undefined,
         }}>
         <Animated.View style={[{ position: 'absolute', width: size, height: size }, ringStyle]}>
           <Image source={OUTER_RING} style={{ width: size, height: size }} resizeMode="contain" />
