@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/app-text';
 import { FONTS } from '@/constants/fonts';
 import { useJerusalem } from '@/state/jerusalem-store';
 
+// The 14 Apocrypha books are stored after Revelation so saved verse positions keep working.
+const CANON_COUNT = 66;
+const BOOK_COLUMNS = 2;
+const CHAPTER_COLUMNS = 6;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
+  return rows;
+}
+
 export function PassageSheet({ onClose }: { onClose: () => void }) {
-  const { bible, scrBook, scrChapter, setScripturePosition } = useJerusalem();
+  const { bible, scrBook, scrChapter, setScripturePosition, theme } = useJerusalem();
   const [pickerBook, setPickerBook] = useState<number | null>(null);
 
   if (!bible) return null;
@@ -25,64 +37,110 @@ export function PassageSheet({ onClose }: { onClose: () => void }) {
     onClose();
   };
 
-  const { theme } = useJerusalem();
-  const bookBtnStyle = (active: boolean) => [
-    styles.bookBtn,
-    { backgroundColor: active ? theme.accent : theme.card, borderColor: theme.border },
-  ];
-  const bookTextStyle = (active: boolean) => ({ color: active ? theme.onaccent : theme.text, fontSize: 11.5, fontWeight: '600' as const });
+  // Equal-width cells in fixed-column rows, so every label sits centered in a same-size button
+  // and a short last row keeps the same column widths.
+  const renderGrid = (items: { key: string; label: string; active: boolean; onPress: () => void }[], columns: number) => (
+    <View style={{ gap: 6 }}>
+      {chunk(items, columns).map((row, r) => (
+        <View key={r} style={styles.row}>
+          {row.map((it) => (
+            <Pressable
+              key={it.key}
+              style={[
+                styles.cell,
+                { backgroundColor: it.active ? theme.accent : theme.card, borderColor: it.active ? theme.accent : theme.border },
+              ]}
+              onPress={it.onPress}>
+              <Text
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
+                style={[styles.cellText, { color: it.active ? theme.onaccent : theme.text }]}>
+                {it.label}
+              </Text>
+            </Pressable>
+          ))}
+          {Array.from({ length: columns - row.length }, (_, i) => (
+            <View key={`pad-${i}`} style={{ flex: 1 }} />
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+
+  // Book names are plain text in two columns (no boxes), so long names fit at a readable size.
+  const renderBookList = (items: { key: string; label: string; active: boolean; onPress: () => void }[], columns: number) => (
+    <View>
+      {chunk(items, columns).map((row, r) => (
+        <View key={r} style={[styles.bookRow, { borderBottomColor: theme.border }]}>
+          {row.map((it) => (
+            <Pressable key={it.key} style={styles.bookItem} onPress={it.onPress}>
+              <Text numberOfLines={1} style={[styles.bookText, { color: it.active ? theme.accent : theme.text, fontWeight: it.active ? '800' : '500' }]}>
+                {it.label}
+              </Text>
+            </Pressable>
+          ))}
+          {Array.from({ length: columns - row.length }, (_, i) => (
+            <View key={`pad-${i}`} style={styles.bookItem} />
+          ))}
+        </View>
+      ))}
+    </View>
+  );
 
   if (pickerBook != null) {
     const book = bible[pickerBook];
     return (
       <View style={{ gap: 12 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[styles.title, { color: theme.text }]}>{book.n}</Text>
-          <Pressable onPress={() => setPickerBook(null)}>
+        <View style={styles.headRow}>
+          <Text style={[styles.title, { color: theme.text, flexShrink: 1 }]} numberOfLines={1}>{book.n}</Text>
+          <Pressable hitSlop={8} onPress={() => setPickerBook(null)}>
             <Text style={{ color: theme.muted, fontSize: 13, fontWeight: '600' }}>All books</Text>
           </Pressable>
         </View>
-        <View style={styles.chapterGrid}>
-          {book.c.map((_, c) => (
-            <Pressable key={c} style={bookBtnStyle(pickerBook === scrBook && c === scrChapter)} onPress={() => pickChapter(c)}>
-              <Text style={bookTextStyle(pickerBook === scrBook && c === scrChapter)}>{c + 1}</Text>
-            </Pressable>
-          ))}
-        </View>
+        {renderGrid(
+          book.c.map((_, c) => ({
+            key: String(c),
+            label: String(c + 1),
+            active: pickerBook === scrBook && c === scrChapter,
+            onPress: () => pickChapter(c),
+          })),
+          CHAPTER_COLUMNS,
+        )}
       </View>
     );
   }
 
-  const ot = bible.slice(0, 39);
-  const nt = bible.slice(39);
+  const toItems = (books: typeof bible, offset: number) =>
+    books.map((b, i) => ({ key: b.n, label: b.n, active: i + offset === scrBook, onPress: () => pickBook(i + offset) }));
+
+  const sections = [
+    { label: 'Old Testament', items: toItems(bible.slice(0, 39), 0) },
+    { label: 'New Testament', items: toItems(bible.slice(39, CANON_COUNT), 39) },
+    { label: 'Apocrypha', items: toItems(bible.slice(CANON_COUNT), CANON_COUNT) },
+  ].filter((section) => section.items.length > 0);
 
   return (
-    <View style={{ gap: 10 }}>
-      <Text style={[styles.title, { color: theme.text }]}>Choose a book</Text>
-      <Text style={[styles.sectionLabel, { color: theme.muted }]}>Old Testament</Text>
-      <View style={styles.bookGrid}>
-        {ot.map((b, i) => (
-          <Pressable key={b.n} style={bookBtnStyle(i === scrBook)} onPress={() => pickBook(i)}>
-            <Text style={bookTextStyle(i === scrBook)}>{b.n}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <Text style={[styles.sectionLabel, { color: theme.muted, marginTop: 6 }]}>New Testament</Text>
-      <View style={styles.bookGrid}>
-        {nt.map((b, i) => (
-          <Pressable key={b.n} style={bookBtnStyle(i + 39 === scrBook)} onPress={() => pickBook(i + 39)}>
-            <Text style={bookTextStyle(i + 39 === scrBook)}>{b.n}</Text>
-          </Pressable>
-        ))}
-      </View>
+    <View style={{ gap: 12 }}>
+      <Text style={[styles.title, { color: theme.text, textAlign: 'center' }]}>Choose a book</Text>
+      {sections.map((section) => (
+        <View key={section.label} style={{ gap: 8 }}>
+          <Text style={[styles.sectionLabel, { color: theme.muted }]}>{section.label}</Text>
+          {renderBookList(section.items, BOOK_COLUMNS)}
+        </View>
+      ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   title: { fontFamily: FONTS.sansBold, fontSize: 16 },
-  sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },
-  bookGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chapterGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  bookBtn: { flexBasis: '31%', borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
+  headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+  sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700', textAlign: 'center' },
+  row: { flexDirection: 'row', gap: 6 },
+  bookRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
+  bookItem: { flex: 1, paddingVertical: 11, paddingHorizontal: 6 },
+  bookText: { fontSize: 15 },
+  cell: { flex: 1, minHeight: 44, borderWidth: 1, borderRadius: 10, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
+  cellText: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
 });

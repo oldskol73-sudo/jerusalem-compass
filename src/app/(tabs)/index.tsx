@@ -1,8 +1,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Text } from '@/components/app-text';
 import { MiniCompassBadge } from '@/components/mini-compass-badge';
 import { ScreenScroll } from '@/components/screen-scroll';
 import { SectionCard } from '@/components/section-card';
@@ -29,6 +31,7 @@ export default function HomeScreen() {
   const { setOpenSheet } = useSheets();
   const greeting = useGreeting();
   const jerusalemTime = useJerusalemTimeLabel();
+  const insets = useSafeAreaInsets();
 
   const locBadge = s.locationSource === 'gps' ? 'Live location'
     : s.locationSource === 'manual' ? `Manual: ${s.locationLabel}`
@@ -37,8 +40,8 @@ export default function HomeScreen() {
 
   return (
     <ScreenScroll noTopInset contentStyle={{ paddingHorizontal: 0 }}>
-      <LinearGradient colors={[s.theme.accent, s.theme.bg]} style={styles.hero}>
-        <Text style={styles.heroWordmark}>FACE JERUSALEM</Text>
+      <LinearGradient colors={[s.theme.accent, s.theme.bg]} style={[styles.hero, { paddingTop: insets.top + 16 }]}>
+        <Text style={styles.heroWordmark} numberOfLines={1} adjustsFontSizeToFit>FACE JERUSALEM</Text>
         <Text style={styles.heroTag}>Know the direction. Pray. Give thanks.</Text>
       </LinearGradient>
 
@@ -74,7 +77,7 @@ export default function HomeScreen() {
             </Text>
             <Text style={{ color: s.theme.muted, fontSize: 12, marginTop: 2 }}>{s.alignmentLabel}</Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: 18, marginTop: 14 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', columnGap: 18, rowGap: 4, marginTop: 14 }}>
             <Text style={{ color: s.theme.muted, fontSize: 11 }}>
               JOE confidence: <Text style={{ color: s.theme.text, fontWeight: '700' }}>{CONFIDENCE_LABEL[s.overallConf]}</Text>
             </Text>
@@ -106,7 +109,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { width: '100%', height: 230, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 24 },
+  hero: { width: '100%', minHeight: 230, paddingBottom: 24, alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 24 },
   heroWordmark: { fontFamily: FONTS.serifSemiBold, fontSize: 26, letterSpacing: 2, color: '#fff' },
   heroTag: { fontSize: 13, color: 'rgba(255,255,255,0.85)' },
   body: { paddingHorizontal: 20, gap: 18, marginTop: 18 },

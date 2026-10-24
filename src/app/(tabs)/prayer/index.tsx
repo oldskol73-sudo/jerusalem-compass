@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/app-text';
 import { ScreenScroll } from '@/components/screen-scroll';
 import { SectionCard } from '@/components/section-card';
 import { ToggleSwitch } from '@/components/toggle-switch';
@@ -24,7 +25,7 @@ export default function PrayerSetupScreen() {
 
   return (
     <ScreenScroll noTopInset contentStyle={{ paddingHorizontal: 0 }}>
-      <ImageBackground source={require('@/assets/images/app/prayer-hero.jpg')} style={styles.hero} resizeMode="cover">
+      <ImageBackground source={require('@/assets/images/app/cover-daniel.jpg')} style={styles.hero} resizeMode="cover">
         <LinearGradient colors={['transparent', 'rgba(0,0,0,0.55)']} style={StyleSheet.absoluteFill} />
         <Text style={styles.heroTitle}>Prayer</Text>
       </ImageBackground>
@@ -52,7 +53,7 @@ export default function PrayerSetupScreen() {
 
         {attachedRef && (
           <SectionCard style={styles.rowCard}>
-            <View>
+            <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={{ color: s.theme.text, fontSize: 14, fontWeight: '600' }}>{attachedRef}</Text>
               <Text style={{ color: s.theme.muted, fontSize: 12 }}>Shown during prayer</Text>
             </View>
@@ -63,7 +64,7 @@ export default function PrayerSetupScreen() {
         )}
 
         <SectionCard style={styles.rowCard}>
-          <View>
+          <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={{ color: s.theme.text, fontSize: 14, fontWeight: '600' }}>Silent Mode</Text>
             <Text style={{ color: s.theme.muted, fontSize: 12 }}>Mute all sound during prayer</Text>
           </View>
@@ -90,7 +91,7 @@ export default function PrayerSetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { width: '100%', height: 230, alignItems: 'center', justifyContent: 'center' },
+  hero: { width: '100%', height: 300, alignItems: 'center', justifyContent: 'center' },
   heroTitle: { fontFamily: FONTS.serifSemiBold, fontSize: 22, color: '#fff' },
   body: { paddingHorizontal: 20, gap: 16, marginTop: 16 },
   sectionLabel: { fontSize: 12, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700' },

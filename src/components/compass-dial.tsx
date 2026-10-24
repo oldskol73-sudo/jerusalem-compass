@@ -1,16 +1,25 @@
 import React, { useEffect } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { useJerusalem } from '@/state/jerusalem-store';
 
-const SIZE = 250;
-const RADIUS = SIZE / 2;
+// The compass is built from three layers, like a real one:
+//  - outer ring (bezel, ticks, degree numbers, N/E/S/W): turns opposite to the heading,
+//    so N always points at true north
+//  - inner dial (the city): stays put
+//  - needle (the star): points at Jerusalem, so its tip lands on Jerusalem's bearing on the ring
+const OUTER_RING = require('@/assets/images/app/compass-outer-ring.png');
+const INNER_DIAL = require('@/assets/images/app/compass-inner-dial.png');
+const NEEDLE = require('@/assets/images/app/compass-needle.png');
+
+// The needle artwork spans this fraction of the whole compass, matching the inner dial's opening.
+const NEEDLE_SCALE = 0.625;
 
 function useSmoothRotation(deg: number) {
   const value = useSharedValue(deg);
   useEffect(() => {
-    // Take the shortest path so the dial never spins the long way around.
+    // Take the shortest path so nothing spins the long way around.
     const current = value.value % 360;
     let target = deg;
     const diff = ((target - current + 540) % 360) - 180;
@@ -20,38 +29,67 @@ function useSmoothRotation(deg: number) {
   return value;
 }
 
-export function CompassDial() {
+/** The layered compass. Pass `size` for a fixed size (the Home preview); otherwise it fills the screen width. */
+export function CompassDial({ size: fixedSize }: { size?: number } = {}) {
   const { smoothedHeading, bearingDeg, theme, isAligned } = useJerusalem();
+  const { width } = useWindowDimensions();
+  const size = fixedSize ?? Math.round(Math.min(width - 40, 340));
+  const needleSize = Math.round(size * NEEDLE_SCALE);
 
-  const dialRotation = useSmoothRotation(-smoothedHeading);
-  const jerusalemRotation = useSmoothRotation(bearingDeg);
+  const ringRotation = useSmoothRotation(-smoothedHeading);
+  const needleRotation = useSmoothRotation(bearingDeg - smoothedHeading);
 
-  const dialStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${dialRotation.value}deg` }],
-  }));
-  const markerStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${jerusalemRotation.value}deg` }],
-  }));
+  const ringStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${ringRotation.value}deg` }] }));
+  const needleStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${needleRotation.value}deg` }] }));
+
+  const markerW = size * 0.03;
 
   return (
     <View style={styles.container}>
       <View
-        style={[
-          styles.glow,
-          isAligned ? { shadowColor: theme.gold, shadowOpacity: 0.9, shadowRadius: 34, elevation: 12 } : null,
-        ]}>
-        <Animated.View style={[styles.dial, { borderColor: theme.brassring }, dialStyle]}>
-          <Image
-            source={require('@/assets/images/app/compass-dial-bg.jpg')}
-            style={styles.dialImage}
-            resizeMode="cover"
-          />
-          <Animated.View style={[styles.jerusalemMarkerWrap, markerStyle]}>
-            <View style={[styles.jerusalemMarker, { backgroundColor: theme.gold, shadowColor: theme.gold }]} />
-          </Animated.View>
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          boxShadow: isAligned ? `0 0 ${fixedSize ? 18 : 34}px ${theme.gold}` : undefined,
+        }}>
+        <Animated.View style={[{ position: 'absolute', width: size, height: size }, ringStyle]}>
+          <Image source={OUTER_RING} style={{ width: size, height: size }} resizeMode="contain" />
         </Animated.View>
-        <View style={[styles.needleStem, { backgroundColor: isAligned ? theme.gold : theme.needle, shadowColor: theme.glow }]} />
-        <View style={[styles.needleHub, { backgroundColor: isAligned ? theme.gold : theme.needle }]} />
+
+        <Image source={INNER_DIAL} style={{ position: 'absolute', width: size, height: size }} resizeMode="contain" />
+
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: (size - needleSize) / 2,
+              left: (size - needleSize) / 2,
+              width: needleSize,
+              height: needleSize,
+              filter: 'drop-shadow(2px 4px 4px rgba(0,0,0,0.55))',
+            } as object,
+            needleStyle,
+          ]}>
+          <Image source={NEEDLE} style={{ width: needleSize, height: needleSize }} resizeMode="contain" />
+        </Animated.View>
+
+        {/* fixed marker at the top: when the needle points up at it, you are facing Jerusalem */}
+        <View
+          style={{
+            position: 'absolute',
+            top: size * 0.06,
+            left: size / 2 - markerW,
+            width: 0,
+            height: 0,
+            borderLeftWidth: markerW,
+            borderRightWidth: markerW,
+            borderTopWidth: markerW * 1.7,
+            borderLeftColor: 'transparent',
+            borderRightColor: 'transparent',
+            borderTopColor: isAligned ? theme.gold : '#f6d98a',
+          }}
+        />
       </View>
     </View>
   );
@@ -59,31 +97,4 @@ export function CompassDial() {
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
-  glow: { width: SIZE, height: SIZE, borderRadius: RADIUS, alignItems: 'center', justifyContent: 'center' },
-  dial: {
-    width: SIZE,
-    height: SIZE,
-    borderRadius: RADIUS,
-    borderWidth: 3,
-    overflow: 'hidden',
-    position: 'absolute',
-  },
-  dialImage: { width: SIZE, height: SIZE, position: 'absolute', top: 0, left: 0 },
-  jerusalemMarkerWrap: { position: 'absolute', inset: 0 } as object,
-  jerusalemMarker: {
-    position: 'absolute',
-    top: 20,
-    left: RADIUS - 7,
-    width: 14,
-    height: 14,
-    borderRadius: 3,
-    transform: [{ rotate: '45deg' }],
-    shadowOpacity: 0.9,
-    shadowRadius: 8,
-  },
-  needleStem: {
-    position: 'absolute', top: 6, left: RADIUS - 1.5, width: 3, height: 20, borderRadius: 2,
-    shadowOpacity: 0.9, shadowRadius: 8,
-  },
-  needleHub: { position: 'absolute', top: RADIUS - 5, left: RADIUS - 5, width: 10, height: 10, borderRadius: 5 },
 });

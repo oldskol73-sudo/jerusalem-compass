@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 
+import { Text } from '@/components/app-text';
 import { BackLink, ScreenTitle } from '@/components/screen-header';
 import { ScreenScroll } from '@/components/screen-scroll';
 import { FONTS } from '@/constants/fonts';

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+import { Text } from '@/components/app-text';
 import { BackLink, ScreenTitle } from '@/components/screen-header';
 import { GhostButton } from '@/components/ghost-button';
 import { ScreenScroll } from '@/components/screen-scroll';
