@@ -7,7 +7,7 @@ import { useJerusalem } from '@/state/jerusalem-store';
 
 // The 14 Apocrypha books are stored after Revelation so saved verse positions keep working.
 const CANON_COUNT = 66;
-const BOOK_COLUMNS = 3;
+const BOOK_COLUMNS = 2;
 const CHAPTER_COLUMNS = 6;
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -68,6 +68,26 @@ export function PassageSheet({ onClose }: { onClose: () => void }) {
     </View>
   );
 
+  // Book names are plain text in two columns (no boxes), so long names fit at a readable size.
+  const renderBookList = (items: { key: string; label: string; active: boolean; onPress: () => void }[], columns: number) => (
+    <View>
+      {chunk(items, columns).map((row, r) => (
+        <View key={r} style={[styles.bookRow, { borderBottomColor: theme.border }]}>
+          {row.map((it) => (
+            <Pressable key={it.key} style={styles.bookItem} onPress={it.onPress}>
+              <Text numberOfLines={1} style={[styles.bookText, { color: it.active ? theme.accent : theme.text, fontWeight: it.active ? '800' : '500' }]}>
+                {it.label}
+              </Text>
+            </Pressable>
+          ))}
+          {Array.from({ length: columns - row.length }, (_, i) => (
+            <View key={`pad-${i}`} style={styles.bookItem} />
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+
   if (pickerBook != null) {
     const book = bible[pickerBook];
     return (
@@ -106,7 +126,7 @@ export function PassageSheet({ onClose }: { onClose: () => void }) {
       {sections.map((section) => (
         <View key={section.label} style={{ gap: 8 }}>
           <Text style={[styles.sectionLabel, { color: theme.muted }]}>{section.label}</Text>
-          {renderGrid(section.items, BOOK_COLUMNS)}
+          {renderBookList(section.items, BOOK_COLUMNS)}
         </View>
       ))}
     </View>
@@ -118,6 +138,9 @@ const styles = StyleSheet.create({
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   sectionLabel: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700', textAlign: 'center' },
   row: { flexDirection: 'row', gap: 6 },
+  bookRow: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
+  bookItem: { flex: 1, paddingVertical: 11, paddingHorizontal: 6 },
+  bookText: { fontSize: 15 },
   cell: { flex: 1, minHeight: 44, borderWidth: 1, borderRadius: 10, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
   cellText: { fontSize: 12, fontWeight: '600', textAlign: 'center' },
 });
