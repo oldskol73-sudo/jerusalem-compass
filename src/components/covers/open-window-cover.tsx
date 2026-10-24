@@ -15,6 +15,9 @@ export function OpenWindowCover() {
   // Frame keeps the 280 x 360 proportion and shrinks on short or narrow screens.
   const frameH = Math.round(Math.max(250, Math.min(360, height * 0.43, ((width - 56) * 360) / 280)));
   const frameW = Math.round((frameH * 280) / 360);
+  // Inside the 4px gold border. Explicit pixel sizes: on iOS a fill-style image ignored its frame.
+  const paneW = frameW - 8;
+  const paneH = frameH - 8;
 
   return (
     <View style={styles.root}>
@@ -35,17 +38,17 @@ export function OpenWindowCover() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.frame}>
-            <View style={{ flex: 1, overflow: 'hidden', borderRadius: 1 }}>
+            <View style={{ width: paneW, height: paneH, overflow: 'hidden', borderRadius: 1, backgroundColor: '#0a0704' }}>
               <Image
                 source={require('@/assets/images/app/cover-daniel.jpg')}
                 accessibilityLabel="Daniel kneeling with arms raised in prayer toward Jerusalem"
-                style={StyleSheet.absoluteFill}
+                style={{ position: 'absolute', top: 0, left: 0, width: paneW, height: paneH }}
                 resizeMode="cover"
               />
               <LinearGradient
-                colors={['rgba(255,220,140,0.18)', 'rgba(255,220,140,0)', 'rgba(10,7,4,0.85)']}
-                locations={[0, 0.4, 1]}
-                style={StyleSheet.absoluteFill}
+                colors={['rgba(255,220,140,0.12)', 'rgba(255,220,140,0)', 'rgba(10,7,4,0.7)']}
+                locations={[0, 0.5, 1]}
+                style={{ position: 'absolute', top: 0, left: 0, width: paneW, height: paneH }}
               />
               {/* window panes */}
               <LinearGradient colors={['#e9c873', '#8f6418']} style={styles.paneV} />
